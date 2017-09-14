@@ -7,7 +7,7 @@ function open {
     $s = New-Object System.Collections.ArrayList;
     foreach ($item in $raw) {
         if(Test-Path $item){
-            $s.Add($item);
+            $s.Add($item) | Out-Null;
         }
     }
     $s = Get-Item ($s)
@@ -59,7 +59,7 @@ function pined {
     $s = New-Object System.Collections.ArrayList;
     foreach ($item in $raw) {
         if(Test-Path $item){
-            $s.Add($item);
+            $s.Add($item) | Out-Null;
         }
     }
     if(-not ($raw.Length -eq $s.Length)){
