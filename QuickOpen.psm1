@@ -1,4 +1,7 @@
 function open {
+    # 删除无效路径
+    # 支持在后面添加 / 打开子目录
+    # 如果路径包含 *，支持检索子目录
     $t = ("*" + ($args -join "*") + "*")
     $s = Get-Item (Get-Content $HOME/psconfig/quickopen.txt)
     foreach ($item in $s) {
