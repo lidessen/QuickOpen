@@ -3,7 +3,14 @@ function open {
     # 支持在后面添加 / 打开子目录
     # 如果路径包含 *，支持检索子目录
     $t = ("*" + ($args -join "*") + "*")
-    $s = Get-Item (Get-Content $HOME/psconfig/quickopen.txt)
+    $raw = Get-Content $HOME/psconfig/quickopen.txt;
+    $s = New-Object System.Collections.ArrayList;
+    foreach ($item in $raw) {
+        if(Test-Path $item){
+            $s.Add($item);
+        }
+    }
+    $s = Get-Item ($s)
     foreach ($item in $s) {
         if ($item.Name -like $t){
             if($item.PsIsContainer){
@@ -21,14 +28,14 @@ function pin {
     
     $Add = ($args -join " ")
 
-    foreach ($item in $s) {
-        $t.Add($item) | Out-Null
-    }
-
-    if($Add){
+    if(Test-Path $Add){
+        foreach ($item in $s) {
+            $t.Add($item) | Out-Null
+        }
+    
         $t.Add($Add) | Out-Null
+        Set-Content -Path $HOME/psconfig/quickopen.txt -Value $t;
     }
-    Set-Content -Path $HOME/psconfig/quickopen.txt -Value $t;
 }
 
 function unpin {
@@ -48,9 +55,19 @@ function unpin {
 }
 
 function pined {
+    $raw = Get-Content $HOME/psconfig/quickopen.txt;
+    $s = New-Object System.Collections.ArrayList;
+    foreach ($item in $raw) {
+        if(Test-Path $item){
+            $s.Add($item);
+        }
+    }
+    if(-not ($raw.Length -eq $s.Length)){
+        Set-Content -Path $HOME/psconfig/quickopen.txt -Value $s;
+    }
     $t = ("*" + ($args -join "*") + "*")
-    if($t){ 
-        $s = Get-Item (Get-Content $HOME/psconfig/quickopen.txt)
+    if($t){
+        $s = Get-Item ($s)
         foreach ($item in $s) {
             if ($item.Name -like $t){
                 $item.FullName;
