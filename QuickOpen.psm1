@@ -2,6 +2,10 @@
 # ×支持在后面添加 / 打开子目录
 # ×如果路径包含 *，支持检索子目录
 function open {
+    if($args.Length -eq 0){
+        Write-Warning "Please provide a path.";
+        return;
+    }
     $t = ("*" + ($args -join "*") + "*")
     $raw = Get-Content $HOME/psconfig/quickopen.txt;
     $s = New-Object System.Collections.ArrayList;
@@ -10,7 +14,7 @@ function open {
             $s.Add($item) | Out-Null;
         }
     }
-    $s = Get-Item ($s)
+    $s = Get-Item ($s) -Force
     foreach ($item in $s) {
         if ($item.Name -like $t){
             if($item.PsIsContainer){
@@ -23,6 +27,10 @@ function open {
 }
 
 function pin {
+    if($args.Length -eq 0){
+        Write-Warning "Please provide a path.";
+        return;
+    }
     $s = (Get-Content $HOME/psconfig/quickopen.txt)
     $t = New-Object System.Collections.ArrayList
     
@@ -39,6 +47,10 @@ function pin {
 }
 
 function unpin {
+    if($args.Length -eq 0){
+        Write-Warning "Please provide a path.";
+        return;
+    }
     $s = (Get-Content $HOME/psconfig/quickopen.txt)
     $t = New-Object System.Collections.ArrayList
     
@@ -67,7 +79,7 @@ function pined {
     }
     $t = ("*" + ($args -join "*") + "*")
     if($t){
-        $s = Get-Item ($s)
+        $s = Get-Item ($s) -Force
         foreach ($item in $s) {
             if ($item.Name -like $t){
                 $item.FullName;
@@ -78,3 +90,9 @@ function pined {
         Write-Host -ForegroundColor 2 (Get-Content $HOME/psconfig/quickopen.txt)
     }
 }
+
+# function ParsePath ($str) {
+#     $obj = New-Object System.Object;
+#     Add-Member -InputObject $obj -Name type -Value 
+#     if()
+# }
