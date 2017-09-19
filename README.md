@@ -1,11 +1,11 @@
 # QuickOpen
 
-## open [folder_name]  - 模糊匹配
+* open [folder_name]  - 模糊匹配
 
-## pin [path]
+* pin [path]
 
-## unpin [path]
+* unpin [path]
 
-## pined - List paths
+* pined - List paths
 
-## pined [name] - Show path by folder name
+* pined [name] - Show path by folder name
