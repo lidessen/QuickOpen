@@ -6,7 +6,10 @@ function open {
         Write-Warning "Please provide a path.";
         return;
     }
-    $t = ("*" + ($args -join "*") + "*")
+    $t_args = $args | Where-Object {
+        !$_.ToString().StartsWith("-")
+    }
+    $t = ("*" + ($t_args -join "*") + "*")
     CheckPath
     $raw = Get-Content $HOME/psconfig/quickopen.txt;
     $s = New-Object System.Collections.ArrayList;
@@ -18,6 +21,16 @@ function open {
     $s = Get-Item ($s) -Force
     foreach ($item in $s) {
         if ($item.Name -like $t){
+            if($args -contains "--code") {
+                if(Get-Command code-insiders -errorAction SilentlyContinue) {
+                    code-insiders $item.FullName
+                    return
+                }
+                if(Get-Command code -errorAction SilentlyContinue) {
+                    code $item.FullName
+                    return
+                }
+            }
             if($item.PsIsContainer){
                 explorer.exe $item.FullName;
             }else{
