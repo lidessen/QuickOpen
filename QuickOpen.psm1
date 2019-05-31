@@ -2,38 +2,37 @@
 # ×支持在后面添加 / 打开子目录
 # ×如果路径包含 *，支持检索子目录
 function open {
-    if($args.Length -eq 0){
+    if ($args.Length -eq 0) {
         Write-Warning "Please provide a path.";
         return;
     }
-    $t_args = $args | Where-Object {
-        !$_.ToString().StartsWith("-")
-    }
+    $t_args = OptionFilter $args
     $t = ("*" + ($t_args -join "*") + "*")
     CheckPath
     $raw = Get-Content $HOME/psconfig/quickopen.txt;
     $s = New-Object System.Collections.ArrayList;
     foreach ($item in $raw) {
-        if(Test-Path $item){
+        if (Test-Path $item) {
             $s.Add($item) | Out-Null;
         }
     }
     $s = Get-Item ($s) -Force
     foreach ($item in $s) {
-        if ($item.Name -like $t){
-            if($args -contains "--code") {
-                if(Get-Command code-insiders -errorAction SilentlyContinue) {
+        if (CheckLike $item $t $args) {
+            if ($args -contains "--code") {
+                if (Get-Command code-insiders -errorAction SilentlyContinue) {
                     code-insiders $item.FullName
                     return
                 }
-                if(Get-Command code -errorAction SilentlyContinue) {
+                if (Get-Command code -errorAction SilentlyContinue) {
                     code $item.FullName
                     return
                 }
             }
-            if($item.PsIsContainer){
+            if ($item.PsIsContainer) {
                 explorer.exe $item.FullName;
-            }else{
+            }
+            else {
                 explorer.exe $item.Directory.Parent.FullName;
             }
         }
@@ -41,7 +40,7 @@ function open {
 }
 
 function pin {
-    if($args.Length -eq 0){
+    if ($args.Length -eq 0) {
         Write-Warning "Please provide a path.";
         return;
     }
@@ -51,7 +50,7 @@ function pin {
     
     $Add = ($args -join " ")
 
-    if(Test-Path $Add){
+    if (Test-Path $Add) {
         foreach ($item in $s) {
             $t.Add($item) | Out-Null
         }
@@ -62,7 +61,7 @@ function pin {
 }
 
 function unpin {
-    if($args.Length -eq 0){
+    if ($args.Length -eq 0) {
         Write-Warning "Please provide a path.";
         return;
     }
@@ -76,7 +75,7 @@ function unpin {
         $t.Add($item) | Out-Null
     }
 
-    if($Remove){
+    if ($Remove) {
         $t.Remove($Remove) | Out-Null
     }
     Set-Content -Path $HOME/psconfig/quickopen.txt -Value $t;
@@ -85,38 +84,66 @@ function unpin {
 function pined {
     CheckPath
     $raw = Get-Content $HOME/psconfig/quickopen.txt;
-    if($raw.Length -eq 0) {
+    if ($raw.Length -eq 0) {
         return
     }
     $s = New-Object System.Collections.ArrayList;
     foreach ($item in $raw) {
-        if(Test-Path $item){
+        if (Test-Path $item) {
             $s.Add($item) | Out-Null;
         }
     }
-    if(-not ($raw.Length -eq $s.Length)){
+    if (-not ($raw.Length -eq $s.Length)) {
         Set-Content -Path $HOME/psconfig/quickopen.txt -Value $s;
     }
-    $t = ("*" + ($args -join "*") + "*")
-    if($t){
+    $t = ("*" + ((OptionFilter $args) -join "*") + "*")
+    if ($t) {
         $s = Get-Item ($s) -Force
         foreach ($item in $s) {
-            if ($item.Name -like $t){
+            if (CheckLike $item $t $args) {
                 $item.FullName;
             }
         }
     }
-    else{
+    else {
         Write-Host -ForegroundColor 2 (Get-Content $HOME/psconfig/quickopen.txt)
     }
 }
 
 function CheckPath {
-    if(!((Test-Path $HOME/psconfig/quickopen.txt) -eq $true)) {
-        if(!((Test-Path $HOME/psconfig) -eq $true)) {
+    if (!((Test-Path $HOME/psconfig/quickopen.txt) -eq $true)) {
+        if (!((Test-Path $HOME/psconfig) -eq $true)) {
             mkdir $HOME/psconfig
         }
         New-Item $HOME/psconfig/quickopen.txt -ItemType File
+    }
+}
+
+function OptionFilter {
+    param (
+        [parameter(ValueFromPipeLine=$true)]
+        $list
+    )
+    return $list | Where-Object {
+        !$_.ToString().StartsWith("-")
+    }
+}
+
+function CheckLike {
+    param (
+        $item,
+        $test,
+        $opt_list
+    )
+    $target = $item.Name
+    if (($opt_list -contains "--full") -or ($opt_list -contains "-f")) {
+        $target = $item.FullName
+    }
+    if (($opt_list -contains "--case") -or ($opt_list -contains "-c")) {
+        return $target -clike $test
+    }
+    else {
+        return $target -like $test
     }
 }
 
