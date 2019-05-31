@@ -7,6 +7,7 @@ function open {
         return;
     }
     $t = ("*" + ($args -join "*") + "*")
+    CheckPath
     $raw = Get-Content $HOME/psconfig/quickopen.txt;
     $s = New-Object System.Collections.ArrayList;
     foreach ($item in $raw) {
@@ -31,6 +32,7 @@ function pin {
         Write-Warning "Please provide a path.";
         return;
     }
+    CheckPath
     $s = (Get-Content $HOME/psconfig/quickopen.txt)
     $t = New-Object System.Collections.ArrayList
     
@@ -51,6 +53,7 @@ function unpin {
         Write-Warning "Please provide a path.";
         return;
     }
+    CheckPath
     $s = (Get-Content $HOME/psconfig/quickopen.txt)
     $t = New-Object System.Collections.ArrayList
     
@@ -67,7 +70,11 @@ function unpin {
 }
 
 function pined {
+    CheckPath
     $raw = Get-Content $HOME/psconfig/quickopen.txt;
+    if($raw.Length -eq 0) {
+        return
+    }
     $s = New-Object System.Collections.ArrayList;
     foreach ($item in $raw) {
         if(Test-Path $item){
@@ -88,6 +95,15 @@ function pined {
     }
     else{
         Write-Host -ForegroundColor 2 (Get-Content $HOME/psconfig/quickopen.txt)
+    }
+}
+
+function CheckPath {
+    if(!((Test-Path $HOME/psconfig/quickopen.txt) -eq $true)) {
+        if(!((Test-Path $HOME/psconfig) -eq $true)) {
+            mkdir $HOME/psconfig
+        }
+        New-Item $HOME/psconfig/quickopen.txt -ItemType File
     }
 }
 
