@@ -19,22 +19,7 @@ function open {
     $s = Get-Item ($s) -Force
     foreach ($item in $s) {
         if (CheckLike $item $t $args) {
-            if ($args -contains "--code") {
-                if (Get-Command code-insiders -errorAction SilentlyContinue) {
-                    code-insiders $item.FullName
-                    return
-                }
-                if (Get-Command code -errorAction SilentlyContinue) {
-                    code $item.FullName
-                    return
-                }
-            }
-            if ($item.PsIsContainer) {
-                explorer.exe $item.FullName;
-            }
-            else {
-                explorer.exe $item.Directory.Parent.FullName;
-            }
+            OpenOrCode $item $args $true
         }
     }
 }
@@ -102,6 +87,7 @@ function pined {
         foreach ($item in $s) {
             if (CheckLike $item $t $args) {
                 $item.FullName;
+                OpenOrCode $item $args
             }
         }
     }
@@ -121,7 +107,7 @@ function CheckPath {
 
 function OptionFilter {
     param (
-        [parameter(ValueFromPipeLine=$true)]
+        [parameter(ValueFromPipeLine = $true)]
         $list
     )
     return $list | Where-Object {
@@ -147,6 +133,29 @@ function CheckLike {
     }
 }
 
+function OpenOrCode {
+    param (
+        $item,
+        $opt_list,
+        $open = $false
+    )
+    if ($opt_list -contains "--code") {
+        if (Get-Command code-insiders -errorAction SilentlyContinue) {
+            code-insiders $item.FullName
+        }
+        elseif (Get-Command code -errorAction SilentlyContinue) {
+            code $item.FullName
+        }
+    }
+    elseif ($open -or $opt_list -contains "-o" -or $opt_list -contains "--open") {
+        if ($item.PsIsContainer) {
+            explorer.exe $item.FullName;
+        }
+        else {
+            explorer.exe $item.Directory.Parent.FullName;
+        }
+    }
+}
 # function ParsePath ($str) {
 #     $obj = New-Object System.Object;
 #     Add-Member -InputObject $obj -Name type -Value 
