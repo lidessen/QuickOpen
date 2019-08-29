@@ -3,13 +3,13 @@
 # ×如果路径包含 *，支持检索子目录
 function open {
 	param (
-		$args
+		$argv
 	)
-	if ($args.Length -eq 0) {
+	if ($argv.Length -eq 0) {
 		Write-Warning "Please provide a path.";
 		return;
 	}
-	$t_args = OptionFilter $args
+	$t_args = OptionFilter $argv
 	$t = ("*" + ($t_args -join "*") + "*")
 	CheckPath
 	$raw = Get-Content $HOME/psconfig/quickopen.txt;
@@ -21,8 +21,8 @@ function open {
 	}
 	$s = Get-Item ($s) -Force
 	foreach ($item in $s) {
-		if (CheckLike $item $t $args) {
-			OpenOrCode $item $args $true
+		if (CheckLike $item $t $argv) {
+			OpenOrCode $item $argv $true
 		}
 	}
 }
@@ -35,25 +35,28 @@ function pin {
 		Write-Host;
 		return;
 	}
+	
+	[Collections.Generic.List[String]]$argv = $args
+	$argv.RemoveAt(0)
 	if ($args[0] -eq "add") {
-		add($args[1..($args.Count - 1)])
+		add $argv
 	}
 	if ($args[0] -eq "ls") {
-		pined($args[1..($args.Count - 1)])
+		pined $argv
 	}
 	if ($args[0] -eq "rm") {
-		unpin($args[1..($args.Count - 1)])
+		unpin $argv
 	}
 	if ($args[0] -eq "open") {
-		open($args[1..($args.Count - 1)])
+		open $argv
 	}
 }
 
 function add {
 	param (
-		$args
+		$argv
 	)
-	if ($args.Length -eq 0) {
+	if ($argv.Length -eq 0) {
 		Write-Warning "Please provide a path.";
 		return;
 	}
@@ -61,7 +64,7 @@ function add {
 	$s = (Get-Content $HOME/psconfig/quickopen.txt)
 	$t = New-Object System.Collections.ArrayList
     
-	$Add = ($args -join " ")
+	$Add = ($argv -join " ")
 
 	if (Test-Path $Add) {
 		foreach ($item in $s) {
@@ -75,9 +78,9 @@ function add {
 
 function unpin {
 	param (
-		$args
+		$argv
 	)
-	if ($args.Length -eq 0) {
+	if ($argv.Length -eq 0) {
 		Write-Warning "Please provide a path.";
 		return;
 	}
@@ -85,7 +88,7 @@ function unpin {
 	$s = (Get-Content $HOME/psconfig/quickopen.txt)
 	$t = New-Object System.Collections.ArrayList
     
-	$Remove = ($args -join " ")
+	$Remove = ($argv -join " ")
 
 	foreach ($item in $s) {
 		$t.Add($item) | Out-Null
@@ -99,7 +102,7 @@ function unpin {
 
 function pined {
 	param (
-		$args
+		$argv
 	)
 	CheckPath
 	$raw = Get-Content $HOME/psconfig/quickopen.txt;
@@ -115,13 +118,13 @@ function pined {
 	if (-not ($raw.Length -eq $s.Length)) {
 		Set-Content -Path $HOME/psconfig/quickopen.txt -Value $s;
 	}
-	$t = ("*" + ((OptionFilter $args) -join "*") + "*")
+	$t = ("*" + ((OptionFilter $argv) -join "*") + "*")
 	if ($t) {
 		$s = Get-Item ($s) -Force
 		foreach ($item in $s) {
-			if (CheckLike $item $t $args) {
+			if (CheckLike $item $t $argv) {
 				$item.FullName;
-				OpenOrCode $item $args
+				OpenOrCode $item $argv
 			}
 		}
 	}
